@@ -18,9 +18,16 @@ import {
   DialogActions,
   Alert,
   Chip,
-  Tooltip
+  Tooltip,
+  TextField,
+  InputAdornment,
+  TablePagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
-import { UserPlus, Eye, Edit, Trash2 } from 'lucide-react';
+import { UserPlus, Eye, Edit, Trash2, Search } from 'lucide-react';
 import { Skeleton } from '@mui/material';
 import advocateService from '../../services/advocateService';
 import { format } from 'date-fns';
@@ -44,36 +51,66 @@ const AdvocateList: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const fetchAdvocates = async () => {
+    try {
+      setIsLoading(true);
+      const { advocates, total } = await advocateService.getAdvocates({
+        page,
+        limit: rowsPerPage,
+        search: searchTerm,
+        status: statusFilter
+      });
+      setAdvocates(advocates);
+      setTotal(total);
+    } catch (error) {
+      console.error('Error fetching advocates:', error);
+      setError('Failed to load advocates');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAdvocates = async () => {
-      try {
-        setIsLoading(true);
-        const data = await advocateService.getAdvocates();
-        setAdvocates(data);
-      } catch (error) {
-        console.error('Error fetching advocates:', error);
-        setError('Failed to load advocates');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchAdvocates();
-  }, []);
+  }, [page, rowsPerPage, searchTerm, statusFilter]);
 
   const handleDelete = async () => {
     if (!selectedAdvocate) return;
 
     try {
       await advocateService.deleteAdvocate(selectedAdvocate.id);
-      setAdvocates(advocates.filter(a => a.id !== selectedAdvocate.id));
+      fetchAdvocates();
       setDeleteDialogOpen(false);
       setSelectedAdvocate(null);
     } catch (error) {
       console.error('Error deleting advocate:', error);
       setError('Failed to delete advocate');
     }
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  };
+
+  const handleStatusChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setStatusFilter(event.target.value as string);
+    setPage(0);
   };
 
   return (
@@ -97,6 +134,34 @@ const AdvocateList: React.FC = () => {
         </Button>
       </Box>
 
+      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+        <TextField
+          placeholder="Search advocates..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          sx={{ flexGrow: 1 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search size={20} />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={statusFilter}
+            label="Status"
+            onChange={handleStatusChange}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="inactive">Inactive</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -113,7 +178,7 @@ const AdvocateList: React.FC = () => {
           </TableHead>
           <TableBody>
             {isLoading ? (
-              Array.from(new Array(5)).map((_, index) => (
+              Array.from(new Array(rowsPerPage)).map((_, index) => (
                 <TableRow key={index}>
                   <TableCell><Skeleton variant="text" /></TableCell>
                   <TableCell><Skeleton variant="text" /></TableCell>
@@ -185,6 +250,15 @@ const AdvocateList: React.FC = () => {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          count={total}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+        />
       </TableContainer>
 
       <Dialog
