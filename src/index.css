@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-main: #1A237E;
+  --primary-light: #534BAE;
+  --primary-dark: #000051;
+  --secondary-main: #00796B;
+  --secondary-light: #48A999;
+  --secondary-dark: #004C40;
+  --accent-main: #FFD700;
+  --accent-light: #FFEB3B;
+  --accent-dark: #FFC107;
+  --success-main: #2E7D32;
+  --warning-main: #ED6C02;
+  --error-main: #D32F2F;
+  --grey-50: #FAFAFA;
+  --grey-100: #F5F5F5;
+  --grey-200: #EEEEEE;
+  --grey-300: #E0E0E0;
+  --grey-400: #BDBDBD;
+  --grey-500: #9E9E9E;
+  --grey-600: #757575;
+  --grey-700: #616161;
+  --grey-800: #424242;
+  --grey-900: #212121;
+}
+
+body {
+  margin: 0;
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--grey-100);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.card-shadow {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-shadow:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.fc .fc-button-primary {
+  background-color: var(--primary-main) !important;
+  border-color: var(--primary-main) !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(26, 35, 126, 0.1) !important;
+}
+
+.fc .fc-event {
+  cursor: pointer;
+  border-color: var(--primary-main);
+  background-color: var(--primary-light);
+}
