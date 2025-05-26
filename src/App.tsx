@@ -19,6 +19,7 @@ import InvoiceList from './pages/invoices/InvoiceList';
 import InvoiceForm from './pages/invoices/InvoiceForm';
 import AdvocateForm from './pages/advocates/AdvocateForm';
 import AdvocateList from './pages/advocates/AdvocateList';
+import AdvocateDetails from './pages/advocates/AdvocateDetails';
 import NotFound from './pages/NotFound';
 import Loading from './components/common/Loading';
 
@@ -80,6 +81,8 @@ function App() {
               <Route path="/advocates">
                 <Route index element={<AdvocateList />} />
                 <Route path="new" element={<AdvocateForm />} />
+                <Route path=":id" element={<AdvocateDetails />} />
+                <Route path=":id/edit" element={<AdvocateForm />} />
               </Route>
             )}
           </Route>
