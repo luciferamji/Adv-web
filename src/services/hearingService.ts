@@ -183,10 +183,28 @@ const mockHearings: Hearing[] = [
   }
 ];
 
-// Get all hearings
-export const getHearings = async (caseId?: string): Promise<Hearing[]> => {
+// Get hearings with optional date range filter
+export const getHearings = async (params?: { 
+  caseId?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<Hearing[]> => {
   await new Promise(resolve => setTimeout(resolve, 1000));
-  return caseId ? mockHearings.filter(h => h.caseId === caseId) : mockHearings;
+  
+  let filteredHearings = mockHearings;
+  
+  if (params?.caseId) {
+    filteredHearings = filteredHearings.filter(h => h.caseId === params.caseId);
+  }
+  
+  if (params?.startDate && params?.endDate) {
+    filteredHearings = filteredHearings.filter(h => {
+      const hearingDate = h.date;
+      return hearingDate >= params.startDate! && hearingDate <= params.endDate!;
+    });
+  }
+  
+  return filteredHearings;
 };
 
 // Get a single hearing

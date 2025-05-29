@@ -19,7 +19,10 @@ import {
   ListItemIcon,
   Divider,
   TextField,
-  IconButton
+  IconButton,
+  Alert,
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import {
   Calendar,
@@ -51,19 +54,28 @@ export default function HearingCalendar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchHearings = async () => {
-      try {
-        const data = await getHearings();
-        setHearings(data);
-      } catch (error) {
-        console.error('Failed to fetch hearings:', error);
-      }
-    };
+  const fetchHearings = async (start: string, end: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getHearings({ startDate: start, endDate: end });
+      setHearings(data);
+    } catch (error) {
+      console.error('Failed to fetch hearings:', error);
+      setError('Failed to load hearings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchHearings();
-  }, []);
+  const handleDatesSet = (arg: { start: Date; end: Date }) => {
+    const startDate = format(arg.start, 'yyyy-MM-dd');
+    const endDate = format(arg.end, 'yyyy-MM-dd');
+    fetchHearings(startDate, endDate);
+  };
 
   const events: EventData[] = hearings.map(hearing => ({
     id: hearing.id,
@@ -113,7 +125,28 @@ export default function HearingCalendar() {
         Hearing Calendar
       </Typography>
 
-      <Paper sx={{ p: 3, mt: 3 }}>
+      <Paper sx={{ p: 3, mt: 3, position: 'relative' }}>
+        {isLoading && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              zIndex: 1,
+            }}
+          >
+            <Box sx={{ textAlign: 'center' }}>
+              <CircularProgress size={40} />
+              <Typography sx={{ mt: 2 }}>Loading hearings...</Typography>
+            </Box>
+          </Box>
+        )}
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -124,6 +157,7 @@ export default function HearingCalendar() {
           }}
           events={events}
           eventClick={handleEventClick}
+          datesSet={handleDatesSet}
           height="auto"
           eventTimeFormat={{
             hour: '2-digit',
@@ -132,6 +166,16 @@ export default function HearingCalendar() {
           }}
         />
       </Paper>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      </Snackbar>
 
       {selectedHearing && (
         <Dialog
