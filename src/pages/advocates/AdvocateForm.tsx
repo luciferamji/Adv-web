@@ -21,8 +21,10 @@ interface AdvocateFormData {
   email: string;
   phone: string;
   barNumber: string;
+  password: string,
   specialization?: string;
   status: 'active' | 'inactive';
+  role: 'advocate'
 }
 
 const AdvocateForm: React.FC = () => {
@@ -36,7 +38,9 @@ const AdvocateForm: React.FC = () => {
     phone: '',
     barNumber: '',
     specialization: '',
-    status: 'active'
+    password:'',
+    status: 'active',
+    role:'advocate'
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -142,6 +146,17 @@ const AdvocateForm: React.FC = () => {
                 label="Email"
                 name="email"
                 value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="password"
+                label="Password"
+                name="password"
+                value={formData.password}
                 onChange={handleChange}
                 required
               />

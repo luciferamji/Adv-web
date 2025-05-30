@@ -1,13 +1,25 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 import authService from '../services/authService';
 
+// interface User {
+//   id: string;
+//   name: string;
+//   email: string;
+//   role: 'super-admin' | 'advocate';
+// }
+
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  role: 'super-admin' | 'advocate';
+  role: string;
+  advocate?: {
+    id: number;
+    barNumber: string;
+    specialization: string;
+    yearsOfExperience: number;
+  };
 }
 
 interface AuthContextType {
@@ -32,8 +44,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -41,43 +53,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = localStorage.getItem('token');
-        
-        if (token) {
-          // Verify token validity
-          try {
-            const decoded: any = jwtDecode(token);
-            const currentTime = Date.now() / 1000;
-            
-            if (decoded.exp && decoded.exp < currentTime) {
-              // Token expired
-              localStorage.removeItem('token');
-              setIsAuthenticated(false);
-              setUser(null);
-              setUserRole(null);
-            } else {
-              // Token valid
-              const userData = {
-                id: decoded.sub,
-                name: decoded.name,
-                email: decoded.email,
-                role: decoded.role
-              };
-              
-              setIsAuthenticated(true);
-              setUser(userData);
-              setUserRole(decoded.role);
-            }
-          } catch (error) {
-            // Invalid token
-            localStorage.removeItem('token');
-            setIsAuthenticated(false);
-            setUser(null);
-            setUserRole(null);
-          }
-        }
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+        setUserRole(userData.role);
+        setIsAuthenticated(true);
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        // Not authenticated or session expired
+        setIsAuthenticated(false);
+        setUser(null);
+        setUserRole(null);
       } finally {
         setIsInitialized(true);
       }
@@ -88,23 +72,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authService.login(email, password);
-      const { token } = response;
-      
-      localStorage.setItem('token', token);
-      
-      const decoded: any = jwtDecode(token);
-      const userData = {
-        id: decoded.sub,
-        name: decoded.name,
-        email: decoded.email,
-        role: decoded.role
-      };
-      
-      setIsAuthenticated(true);
+      await authService.login({ email, password });
+      const userData = await authService.getCurrentUser();
       setUser(userData);
-      setUserRole(decoded.role);
-      
+      setUserRole(userData.role);
+      setIsAuthenticated(true);
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
@@ -112,12 +84,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setUser(null);
-    setUserRole(null);
-    navigate('/login');
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } finally {
+      setIsAuthenticated(false);
+      setUser(null);
+      setUserRole(null);
+      navigate('/login');
+    }
   };
 
   return (
@@ -128,7 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         user,
         userRole,
         login,
-        logout
+        logout,
       }}
     >
       {children}
