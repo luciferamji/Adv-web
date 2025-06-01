@@ -40,8 +40,8 @@ interface Advocate {
   barNumber: string;
   specialization?: string;
   status: 'active' | 'inactive';
-  joinDate?: string;
-  caseCount?: number;
+  joinDate: string;
+  caseCount: number;
 }
 
 const AdvocateList: React.FC = () => {
@@ -66,7 +66,6 @@ const AdvocateList: React.FC = () => {
         search: searchTerm,
         status: statusFilter
       });
-      console.log(advocates)
       setAdvocates(advocates);
       setTotal(total);
     } catch (error) {
@@ -206,7 +205,7 @@ const AdvocateList: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>{advocate.caseCount}</TableCell>
-                  <TableCell>{format(new Date(advocate.joinDate || new Date()), 'PP')}</TableCell>
+                  <TableCell>{format(new Date(advocate.joinDate), 'PP')}</TableCell>
                   <TableCell align="right">
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                       <Tooltip title="View Details">

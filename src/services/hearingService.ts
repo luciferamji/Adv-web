@@ -1,86 +1,86 @@
 import api from './api';
 import { ENDPOINTS } from '../config/api';
-
-export interface HearingComment {
-  id: string;
-  hearingId: string;
-  userId: string;
-  userName: string;
-  content: string;
-  createdAt: string;
-  attachments: Array<{
-    id: string;
-    fileName: string;
-    fileSize: number;
-    fileType: string;
-    url: string;
-  }>;
-}
+import { uploadFiles } from '../utils/uploadUtils';
 
 export interface Hearing {
-  id: string;
-  caseId: string;
-  caseName: string;
-  clientId: string;
-  clientName: string;
-  courtName: string;
-  date: string;
-  time: string;
-  status: 'Scheduled' | 'Completed' | 'Cancelled';
+  id: number;
+  caseId: number;
+  hearingDate: string;
   notes?: string;
-  purpose?: string;
-  judge?: string;
-  room?: string;
+  status: 'scheduled' | 'completed' | 'postponed' | 'cancelled';
   comments?: HearingComment[];
 }
 
+export interface HearingComment {
+  id: number;
+  text: string;
+  documents: Array<{
+    id: number;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  }>;
+}
+
 export const getHearings = async (params?: { 
-  caseId?: string;
+  caseId?: number;
   startDate?: string;
   endDate?: string;
-}): Promise<Hearing[]> => {
+}): Promise<{ count: number; data: Hearing[] }> => {
   return api.get(ENDPOINTS.HEARINGS, { params });
 };
 
 export const getHearing = async (id: string): Promise<Hearing> => {
-  return api.get(`${ENDPOINTS.HEARINGS}/${id}`);
+  return api.get(ENDPOINTS.HEARING(id));
 };
 
-export const createHearing = async (hearingData: Omit<Hearing, 'id' | 'comments'>): Promise<Hearing> => {
-  return api.post(ENDPOINTS.HEARINGS, hearingData);
+export const createHearing = async (data: Omit<Hearing, 'id' | 'comments'>): Promise<Hearing> => {
+  return api.post(ENDPOINTS.HEARINGS, data);
 };
 
-export const updateHearing = async (id: string, hearingData: Partial<Hearing>): Promise<Hearing> => {
-  return api.put(`${ENDPOINTS.HEARINGS}/${id}`, hearingData);
+export const updateHearing = async (id: string, data: Partial<Hearing>): Promise<Hearing> => {
+  return api.put(ENDPOINTS.HEARING(id), data);
 };
 
 export const deleteHearing = async (id: string): Promise<void> => {
-  return api.delete(`${ENDPOINTS.HEARINGS}/${id}`);
+  return api.delete(ENDPOINTS.HEARING(id));
 };
 
 export const addHearingComment = async (
   hearingId: string,
-  data: {
-    content: string;
-    attachments: Array<{
-      fileName: string;
-      fileSize: number;
-      fileType: string;
-      url: string;
-    }>;
-  }
+  text: string,
+  files?: File[],
+  onProgress?: (progress: number) => void
 ): Promise<HearingComment> => {
-  return api.post(ENDPOINTS.HEARING_COMMENTS(hearingId), data);
+  let documents = [];
+  
+  if (files && files.length > 0) {
+    documents = await uploadFiles(
+      files,
+      ENDPOINTS.HEARING_COMMENTS(hearingId),
+      onProgress
+    );
+  }
+
+  const comment = await api.post(ENDPOINTS.HEARING_COMMENTS(hearingId), {
+    text,
+    documents: documents.map(doc => doc.id)
+  });
+
+  return comment;
 };
 
 export const updateHearingComment = async (
   hearingId: string,
   commentId: string,
-  data: { content: string }
+  data: Partial<HearingComment>
 ): Promise<HearingComment> => {
-  return api.put(`${ENDPOINTS.HEARING_COMMENTS(hearingId)}/${commentId}`, data);
+  return api.put(ENDPOINTS.HEARING_COMMENT(hearingId, commentId), data);
 };
 
-export const deleteHearingComment = async (hearingId: string, commentId: string): Promise<void> => {
-  return api.delete(`${ENDPOINTS.HEARING_COMMENTS(hearingId)}/${commentId}`);
+export const deleteHearingComment = async (
+  hearingId: string,
+  commentId: string
+): Promise<void> => {
+  return api.delete(ENDPOINTS.HEARING_COMMENT(hearingId, commentId));
 };

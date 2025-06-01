@@ -1,51 +1,57 @@
 import api from './api';
 import { ENDPOINTS } from '../config/api';
+import { uploadFiles } from '../utils/uploadUtils';
 
 export interface Case {
-  id: string;
-  caseNumber: string;
-  title: string;
-  clientId: string;
-  clientName: string;
-  status: 'OPEN' | 'CLOSED' | 'PENDING';
-  courtName: string;
-  nextHearing?: string;
-  createdAt: string;
-  description?: string;
-}
-
-export interface CaseComment {
-  id: string;
+  id: number;
+  clientId: number;
   caseId: string;
-  userId: string;
-  userName: string;
-  content: string;
-  attachments: CommentAttachment[];
-  createdAt: string;
+  courtDetails: string;
+  remarks?: string;
+  status: 'active' | 'closed' | 'pending';
+  hearings?: Hearing[];
+  comments?: CaseComment[];
 }
 
-export interface CommentAttachment {
-  id: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  url: string;
+interface Hearing {
+  id: number;
+  hearingDate: string;
+  notes?: string;
+  status: string;
 }
 
-export const getCases = async (): Promise<Case[]> => {
-  return api.get(ENDPOINTS.CASES);
+interface CaseComment {
+  id: number;
+  text: string;
+  documents: Array<{
+    id: number;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+  }>;
+}
+
+export const getCases = async (params?: { 
+  clientId?: number;
+  status?: string;
+}): Promise<{ count: number; data: Case[] }> => {
+  return api.get(ENDPOINTS.CASES, { params });
 };
 
 export const getCase = async (id: string): Promise<Case> => {
-  return api.get(`${ENDPOINTS.CASES}/${id}`);
+  return api.get(ENDPOINTS.CASE(id));
 };
 
-export const createCase = async (caseData: Omit<Case, 'id' | 'createdAt'>): Promise<Case> => {
-  return api.post(ENDPOINTS.CASES, caseData);
+export const createCase = async (data: Omit<Case, 'id' | 'hearings' | 'comments'>): Promise<Case> => {
+  return api.post(ENDPOINTS.CASES, data);
 };
 
-export const updateCase = async (id: string, caseData: Partial<Case>): Promise<Case> => {
-  return api.put(`${ENDPOINTS.CASES}/${id}`, caseData);
+export const updateCase = async (id: string, data: Partial<Case>): Promise<Case> => {
+  return api.put(ENDPOINTS.CASE(id), data);
+};
+
+export const deleteCase = async (id: string): Promise<void> => {
+  return api.delete(ENDPOINTS.CASE(id));
 };
 
 export const getCaseComments = async (caseId: string): Promise<CaseComment[]> => {
@@ -54,7 +60,24 @@ export const getCaseComments = async (caseId: string): Promise<CaseComment[]> =>
 
 export const addCaseComment = async (
   caseId: string,
-  data: { content: string; attachments: Omit<CommentAttachment, 'id'>[] }
+  text: string,
+  files?: File[],
+  onProgress?: (progress: number) => void
 ): Promise<CaseComment> => {
-  return api.post(ENDPOINTS.CASE_COMMENTS(caseId), data);
+  let documents = [];
+  
+  if (files && files.length > 0) {
+    documents = await uploadFiles(
+      files,
+      ENDPOINTS.CASE_COMMENTS(caseId),
+      onProgress
+    );
+  }
+
+  const comment = await api.post(ENDPOINTS.CASE_COMMENTS(caseId), {
+    text,
+    documents: documents.map(doc => doc.id)
+  });
+
+  return comment;
 };

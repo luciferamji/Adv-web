@@ -26,7 +26,6 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      console.log()
       await login(email, password);
       navigate('/');
     } catch (error: any) {

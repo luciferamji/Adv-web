@@ -2,15 +2,13 @@ import api from './api';
 import { ENDPOINTS } from '../config/api';
 
 interface Advocate {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  phone: string;
   barNumber: string;
   specialization?: string;
+  yearsOfExperience: number;
   status: 'active' | 'inactive';
-  joinDate?: string;
-  caseCount?: number;
 }
 
 interface GetAdvocatesParams {
@@ -21,37 +19,26 @@ interface GetAdvocatesParams {
 }
 
 interface GetAdvocatesResponse {
-  advocates: Advocate[];
-  total: number;
+  count: number;
+  data: Advocate[];
 }
 
-export const getAdvocates = async (params: GetAdvocatesParams = {}): Promise<GetAdvocatesResponse> => {
+const getAdvocates = async (params: GetAdvocatesParams = {}): Promise<GetAdvocatesResponse> => {
   return api.get(ENDPOINTS.ADVOCATES, { params });
 };
 
-export const getAdvocate = async (id: string): Promise<Advocate> => {
-  return api.get(`${ENDPOINTS.ADVOCATES}/${id}`);
+const getAdvocate = async (id: string): Promise<Advocate> => {
+  return api.get(ENDPOINTS.ADVOCATE(id));
 };
 
-export const createAdvocate = async (advocateData: Omit<Advocate, 'id' | 'status' | 'joinDate' | 'caseCount'>): Promise<Advocate> => {
-  console.log(advocateData)
-  return api.post(ENDPOINTS.USERS, advocateData);
-};
-
-export const updateAdvocate = async (id: string, advocateData: Partial<Advocate>): Promise<Advocate> => {
-  return api.put(`${ENDPOINTS.ADVOCATES}/${id}`, advocateData);
-};
-
-export const deleteAdvocate = async (id: string): Promise<void> => {
-  return api.delete(`${ENDPOINTS.ADVOCATES}/${id}`);
+const updateAdvocate = async (id: string, data: Partial<Advocate>): Promise<Advocate> => {
+  return api.put(ENDPOINTS.ADVOCATE(id), data);
 };
 
 const advocateService = {
   getAdvocates,
   getAdvocate,
-  createAdvocate,
-  updateAdvocate,
-  deleteAdvocate
+  updateAdvocate
 };
 
 export default advocateService;

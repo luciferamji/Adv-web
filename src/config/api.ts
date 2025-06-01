@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = 'http://localhost:3000/api';
 
 // API Endpoints
 export const ENDPOINTS = {
@@ -17,7 +17,6 @@ export const ENDPOINTS = {
   
   // Advocates
   ADVOCATES: '/advocates',
-  CREATEADVOCATE: '/users',
   ADVOCATE: (id: string) => `/advocates/${id}`,
   
   // Clients
@@ -37,5 +36,25 @@ export const ENDPOINTS = {
   // Calendar
   CALENDAR: '/calendar',
   CALENDAR_TODAY: '/calendar/today',
-  CALENDAR_UPCOMING: '/calendar/upcoming'
+  CALENDAR_UPCOMING: '/calendar/upcoming',
+
+  // Dashboard
+  DASHBOARD: '/dashboard',
+  DASHBOARD_STATS: '/dashboard/stats',
+  DASHBOARD_RECENT: '/dashboard/recent',
+  
+  // Documents
+  DOCUMENTS: '/documents',
+  DOCUMENT: (id: string) => `/documents/${id}`,
+  DOCUMENT_UPLOAD: '/documents/upload',
+  
+  // Invoices
+  INVOICES: '/invoices',
+  INVOICE: (id: string) => `/invoices/${id}`,
+  INVOICE_GENERATE: (id: string) => `/invoices/${id}/generate`,
+  
+  // Notifications
+  NOTIFICATIONS: '/notifications',
+  NOTIFICATION_READ: (id: string) => `/notifications/${id}/read`,
+  NOTIFICATION_SETTINGS: '/notifications/settings'
 };

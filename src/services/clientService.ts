@@ -2,30 +2,40 @@ import api from './api';
 import { ENDPOINTS } from '../config/api';
 
 interface Client {
-  id: string;
+  id: number;
   name: string;
   clientId: string;
   email: string;
   phone: string;
   address: string;
-  caseCount: number;
-  createdAt: string;
+  cases?: Case[];
 }
 
-const getClients = async (): Promise<Client[]> => {
+interface Case {
+  id: number;
+  caseId: string;
+  courtDetails: string;
+  status: string;
+}
+
+const getClients = async (): Promise<{ count: number; data: Client[] }> => {
   return api.get(ENDPOINTS.CLIENTS);
 };
 
-const getClientById = async (id: string): Promise<Client | null> => {
-  return api.get(`${ENDPOINTS.CLIENTS}/${id}`);
+const getClientById = async (id: string): Promise<Client> => {
+  return api.get(ENDPOINTS.CLIENT(id));
 };
 
-const createClient = async (client: Omit<Client, 'id' | 'clientId' | 'caseCount' | 'createdAt'>): Promise<Client> => {
-  return api.post(ENDPOINTS.CLIENTS, client);
+const createClient = async (data: Omit<Client, 'id' | 'cases'>): Promise<Client> => {
+  return api.post(ENDPOINTS.CLIENTS, data);
 };
 
-const updateClient = async (id: string, client: Partial<Client>): Promise<Client> => {
-  return api.put(`${ENDPOINTS.CLIENTS}/${id}`, client);
+const updateClient = async (id: string, data: Partial<Client>): Promise<Client> => {
+  return api.put(ENDPOINTS.CLIENT(id), data);
+};
+
+const deleteClient = async (id: string): Promise<void> => {
+  return api.delete(ENDPOINTS.CLIENT(id));
 };
 
 const clientService = {
@@ -33,6 +43,7 @@ const clientService = {
   getClientById,
   createClient,
   updateClient,
+  deleteClient
 };
 
 export default clientService;

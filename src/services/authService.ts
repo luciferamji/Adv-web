@@ -36,28 +36,32 @@ interface User {
 }
 
 const login = async (credentials: LoginCredentials): Promise<{ user: User }> => {
-  console.log(credentials)
-  return api.post(ENDPOINTS.LOGIN, credentials,{ withCredentials: true });
+  const response = await api.post(ENDPOINTS.LOGIN, credentials);
+  return response;
 };
 
 const register = async (data: RegisterData): Promise<{ user: User }> => {
-  return api.post(ENDPOINTS.REGISTER, data);
+  const response = await api.post(ENDPOINTS.REGISTER, data);
+  return response;
 };
 
 const logout = async (): Promise<void> => {
-  return api.get(ENDPOINTS.LOGOUT);
+  await api.get(ENDPOINTS.LOGOUT);
 };
 
 const getCurrentUser = async (): Promise<User> => {
-  return api.get(ENDPOINTS.ME);
+  const response = await api.get(ENDPOINTS.ME);
+  return response;
 };
 
 const updateDetails = async (data: UpdateDetailsData): Promise<User> => {
-  return api.put(ENDPOINTS.UPDATE_DETAILS, data);
+  const response = await api.put(ENDPOINTS.UPDATE_DETAILS, data);
+  return response;
 };
 
 const updatePassword = async (data: UpdatePasswordData): Promise<{ user: User }> => {
-  return api.put(ENDPOINTS.UPDATE_PASSWORD, data);
+  const response = await api.put(ENDPOINTS.UPDATE_PASSWORD, data);
+  return response;
 };
 
 const authService = {

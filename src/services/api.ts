@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
-axios.defaults.withCredentials = true;
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +36,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('token');
-      // window.location.href = '/login';
+      window.location.href = '/login';
     }
     // Extract error message from API response
     const message = error.response?.data?.message || 'An error occurred';

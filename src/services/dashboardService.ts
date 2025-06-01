@@ -8,39 +8,37 @@ interface DashboardStats {
   upcomingHearings: number;
 }
 
-interface Hearing {
-  id: string;
-  caseId: string;
-  caseName: string;
-  clientId: string;
-  clientName: string;
-  courtName: string;
-  date: string;
-  time: string;
-  status: string;
-}
-
-interface CaseOverview {
-  id: string;
-  caseId: string;
-  clientName: string;
-  courtName: string;
-  nextHearingDate: string | null;
-  status: string;
+interface RecentActivity {
+  id: number;
+  type: string;
+  description: string;
+  timestamp: string;
 }
 
 interface DashboardData {
   stats: DashboardStats;
-  upcomingHearings: Hearing[];
-  recentCases: CaseOverview[];
+  recentActivities: RecentActivity[];
+  upcomingHearings: any[]; // Type from calendar service
+  recentCases: any[]; // Type from case service
 }
 
 const getDashboardData = async (): Promise<DashboardData> => {
-  return api.get(ENDPOINTS.DASHBOARD);
+  const [stats, calendar, cases] = await Promise.all([
+    api.get(ENDPOINTS.DASHBOARD_STATS),
+    api.get(ENDPOINTS.CALENDAR_UPCOMING, { params: { days: 7 } }),
+    api.get(ENDPOINTS.CASES, { params: { status: 'active', limit: 5 } })
+  ]);
+
+  return {
+    stats,
+    recentActivities: [], // To be implemented when API is available
+    upcomingHearings: calendar.data,
+    recentCases: cases.data
+  };
 };
 
 const dashboardService = {
-  getDashboardData,
+  getDashboardData
 };
 
 export default dashboardService;
